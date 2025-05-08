@@ -1,8 +1,60 @@
-import Image from "next/image";
+'use client';
+
+import { PopulationAPI, PrefectureAPI } from '@/api/api';
+import { getPopulation, getPrefectures } from '@/api/implement';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+  const [prefectures, setPrefectures] =
+    useState<PrefectureAPI['response']['result']>();
+  const [populationData, setPopulationData] =
+    useState<PopulationAPI['response']['result']>();
+
+  const [selectedPrefCode, setSelectedPrefCode] = useState<number>(1);
+
+  const fetchPrefectures = async () => {
+    console.log('fetchPrefectures');
+    const res = await getPrefectures();
+    if (res instanceof Error) {
+      alert(res.message);
+      return;
+    }
+    console.log(res);
+    setPrefectures(res.result);
+    console.log(prefectures);
+  };
+
+  const fetchPopulation = async (prefCode: number) => {
+    console.log('fetchPopulation');
+    const res = await getPopulation({ prefCode });
+    if (res instanceof Error) {
+      alert(res.message);
+      return;
+    }
+    console.log(res);
+    setPopulationData(res.result);
+    console.log(populationData);
+  };
+
+  useEffect(() => {
+    fetchPrefectures();
+    fetchPopulation(selectedPrefCode);
+  }, []);
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <div className="flex flex-col gap-2 items-center justify-center">
+        <button
+          onClick={() => fetchPopulation(selectedPrefCode)}
+          className="outlined"
+        >
+          リロード
+        </button>
+        {prefectures?.forEach((prefecture) => {
+          <p>prefecture.prefName</p>;
+        })}
+        {populationData?.boundaryYear || ' '}
+      </div>
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <Image
           className="dark:invert"
@@ -14,7 +66,7 @@ export default function Home() {
         />
         <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
           <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
+            Get started by editing{' '}
             <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
               src/app/page.tsx
             </code>
