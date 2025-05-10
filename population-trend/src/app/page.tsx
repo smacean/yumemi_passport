@@ -1,6 +1,6 @@
 'use client';
 
-import { PopulationAPI, PrefectureAPI } from '@/api/api';
+import { PopulationAPI, PopulationType, PrefectureAPI } from '@/api/api';
 import { getPopulation, getPrefectures } from '@/api/implement';
 import { format } from 'path';
 import { use, useEffect, useMemo, useState } from 'react';
@@ -37,6 +37,9 @@ export default function Home() {
     status: boolean;
   }>();
 
+  const [currentDisplayData, setCurrentDisplayData] =
+    useState<PopulationType>('総人口');
+
   const fetchPrefectures = async () => {
     const res = await getPrefectures();
     if (res instanceof Error) {
@@ -56,8 +59,8 @@ export default function Home() {
   };
 
   const changePopulationData = async (prefCode: number) => {
-    console.log('changePopulationData', prefCode);
-    console.log('checkBoxStatus', checkBoxStatus[prefCode]);
+    // console.log('changePopulationData', prefCode);
+    // console.log('checkBoxStatus', checkBoxStatus[prefCode]);
     if (checkBoxStatus[prefCode]) {
       fetchPopulation(prefCode);
     } else {
@@ -73,10 +76,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    console.log('currentChangeCodeStatus', currentChangeCodeStatus);
+    // console.log('currentChangeCodeStatus', currentChangeCodeStatus);
     if (currentChangeCodeStatus === undefined) return;
     changePopulationData(currentChangeCodeStatus.prefCode);
-    console.log('currentData', currentData);
+    // console.log('currentData', currentData);
   }, [currentChangeCodeStatus]);
 
   const currentData = useMemo(() => {
@@ -86,7 +89,7 @@ export default function Home() {
 
     for (const [prefCode, prefData] of Object.entries(populationData)) {
       const totalPopulationData =
-        prefData.data.find((d) => d.label === '総人口')?.data || [];
+        prefData.data.find((d) => d.label === currentDisplayData)?.data || [];
 
       for (const { year, value } of totalPopulationData) {
         if (!formatted[year]) formatted[year] = { name: year.toString() };
@@ -95,7 +98,7 @@ export default function Home() {
     }
 
     return Object.values(formatted); // recharts用に配列に変換
-  }, [populationData]);
+  }, [populationData, currentDisplayData]);
 
   const lineKeys = useMemo(() => {
     if (currentData.length === 0) return [];
@@ -133,6 +136,36 @@ export default function Home() {
           );
         })}
       </div>
+      <div className="gap-2 flex flex-row items-center justify-center">
+        <button
+          onClick={() => setCurrentDisplayData('総人口')}
+          className="px-4 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+        >
+          総人口
+        </button>
+
+        <button
+          onClick={() => setCurrentDisplayData('年少人口')}
+          className="px-4 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+        >
+          年少人口
+        </button>
+
+        <button
+          onClick={() => setCurrentDisplayData('生産年齢人口')}
+          className="px-4 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+        >
+          生産年齢人口
+        </button>
+
+        <button
+          onClick={() => setCurrentDisplayData('老年人口')}
+          className="px-4 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+        >
+          老年人口
+        </button>
+      </div>
+      <div>{currentDisplayData}</div>
       <div className="size-auto mt-8">
         {currentData.length > 0 ? (
           <LineChart
