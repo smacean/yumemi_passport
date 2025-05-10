@@ -16,6 +16,7 @@ import {
   CartesianGrid,
   Legend,
 } from 'recharts';
+import { colors } from '@/utils/colors';
 
 interface checkBoxStatusProps {
   [key: number]: boolean;
@@ -31,7 +32,10 @@ export default function Home() {
   const [checkBoxStatus, setCheckBoxStatus] = useState<checkBoxStatusProps>(
     Object.fromEntries(Array.from({ length: 47 }, (_, i) => [i + 1, false])),
   );
-  const [currentChangeCode, setCurrentChangeCode] = useState<number>();
+  const [currentChangeCodeStatus, setCurrentChangeCodeStatus] = useState<{
+    prefCode: number;
+    status: boolean;
+  }>();
 
   const fetchPrefectures = async () => {
     const res = await getPrefectures();
@@ -52,6 +56,8 @@ export default function Home() {
   };
 
   const changePopulationData = async (prefCode: number) => {
+    console.log('changePopulationData', prefCode);
+    console.log('checkBoxStatus', checkBoxStatus[prefCode]);
     if (checkBoxStatus[prefCode]) {
       fetchPopulation(prefCode);
     } else {
@@ -67,10 +73,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (currentChangeCode === undefined) return;
-    changePopulationData(currentChangeCode);
+    console.log('currentChangeCodeStatus', currentChangeCodeStatus);
+    if (currentChangeCodeStatus === undefined) return;
+    changePopulationData(currentChangeCodeStatus.prefCode);
     console.log('currentData', currentData);
-  }, [currentChangeCode]);
+  }, [currentChangeCodeStatus]);
 
   const currentData = useMemo(() => {
     if (populationData === undefined) return [];
@@ -95,56 +102,6 @@ export default function Home() {
     return Object.keys(currentData[0]).filter((key) => key !== 'name');
   }, [currentData]);
 
-  const colors = [
-    '#e6194b',
-    '#3cb44b',
-    '#ffe119',
-    '#4363d8',
-    '#f58231',
-    '#911eb4',
-    '#46f0f0',
-    '#f032e6',
-    '#bcf60c',
-    '#fabebe',
-    '#008080',
-    '#e6beff',
-    '#9a6324',
-    '#fffac8',
-    '#800000',
-    '#aaffc3',
-    '#808000',
-    '#ffd8b1',
-    '#000075',
-    '#808080',
-    '#ffffff',
-    '#000000',
-    '#ff7f00',
-    '#1f78b4',
-    '#33a02c',
-    '#6a3d9a',
-    '#b15928',
-    '#fb9a99',
-    '#cab2d6',
-    '#ffff99',
-    '#b2df8a',
-    '#fdbf6f',
-    '#a6cee3',
-    '#ffb3e6',
-    '#c2c2f0',
-    '#ff6666',
-    '#66ff66',
-    '#9999ff',
-    '#669999',
-    '#ffcc99',
-    '#66cccc',
-    '#cc99ff',
-    '#99cc00',
-    '#ff9933',
-    '#cc0066',
-    '#3366cc',
-    '#ff0066',
-  ];
-
   return (
     <div className="items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] flex-grow">
       <div className="flex flex-row items-center justify-center flex-wrap w-xl my-auto">
@@ -160,7 +117,10 @@ export default function Home() {
                   id={prefCode.toString()}
                   checked={checkBoxStatus[prefCode]}
                   onChange={() => {
-                    setCurrentChangeCode(prefCode);
+                    setCurrentChangeCodeStatus({
+                      prefCode,
+                      status: !checkBoxStatus[prefCode],
+                    });
                     setCheckBoxStatus((prev) => ({
                       ...prev,
                       [prefCode]: !prev[prefCode],
