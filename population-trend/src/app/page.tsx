@@ -84,6 +84,7 @@ export default function Home() {
 
   const currentData = useMemo(() => {
     if (populationData === undefined) return [];
+    if (prefectures === undefined) return [];
 
     const formatted: { [year: number]: any } = {};
 
@@ -93,7 +94,11 @@ export default function Home() {
 
       for (const { year, value } of totalPopulationData) {
         if (!formatted[year]) formatted[year] = { name: year.toString() };
-        formatted[year][`pref_${prefCode}`] = value;
+        formatted[year][
+          prefectures.find(
+            (prefecture) => prefecture.prefCode == Number(prefCode),
+          )?.prefName!
+        ] = value;
       }
     }
 
@@ -183,7 +188,11 @@ export default function Home() {
               <Line
                 key={key}
                 dataKey={key}
-                stroke={colors[index % colors.length]}
+                stroke={
+                  colors[
+                    prefectures!.findIndex((pref) => pref.prefName === key)
+                  ]
+                }
                 isAnimationActive={false}
               />
             ))}
