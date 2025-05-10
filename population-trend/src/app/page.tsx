@@ -59,8 +59,6 @@ export default function Home() {
   };
 
   const changePopulationData = async (prefCode: number) => {
-    // console.log('changePopulationData', prefCode);
-    // console.log('checkBoxStatus', checkBoxStatus[prefCode]);
     if (checkBoxStatus[prefCode]) {
       fetchPopulation(prefCode);
     } else {
@@ -76,10 +74,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // console.log('currentChangeCodeStatus', currentChangeCodeStatus);
     if (currentChangeCodeStatus === undefined) return;
     changePopulationData(currentChangeCodeStatus.prefCode);
-    // console.log('currentData', currentData);
   }, [currentChangeCodeStatus]);
 
   const currentData = useMemo(() => {
@@ -111,99 +107,147 @@ export default function Home() {
   }, [currentData]);
 
   return (
-    <div className="items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] flex-grow">
-      <div className="flex flex-row items-center justify-center flex-wrap w-xl my-auto">
-        {prefectures?.map((prefecture) => {
-          const prefCode = prefecture.prefCode;
-          const prefName = prefecture.prefName;
-          return (
-            <div key={prefCode} className="gap-2 mx-4 my-1">
-              <label>
-                <input
-                  type="checkbox"
-                  name={prefName}
-                  id={prefCode.toString()}
-                  checked={checkBoxStatus[prefCode]}
-                  onChange={() => {
-                    setCurrentChangeCodeStatus({
-                      prefCode,
-                      status: !checkBoxStatus[prefCode],
-                    });
-                    setCheckBoxStatus((prev) => ({
-                      ...prev,
-                      [prefCode]: !prev[prefCode],
-                    }));
-                  }}
-                />
-                {prefName}
-              </label>
-            </div>
-          );
-        })}
-      </div>
-      <div className="gap-2 flex flex-row items-center justify-center">
-        <button
-          onClick={() => setCurrentDisplayData('総人口')}
-          className={`btn-base ${currentDisplayData === '総人口' ? 'bg-gray-300' : ''}`}
-        >
-          総人口
-        </button>
-
-        <button
-          onClick={() => setCurrentDisplayData('年少人口')}
-          className={`btn-base ${currentDisplayData === '年少人口' ? 'bg-gray-300' : ''}`}
-        >
-          年少人口
-        </button>
-
-        <button
-          onClick={() => setCurrentDisplayData('生産年齢人口')}
-          className={`btn-base ${currentDisplayData === '生産年齢人口' ? 'bg-gray-300' : ''}`}
-        >
-          生産年齢人口
-        </button>
-
-        <button
-          onClick={() => setCurrentDisplayData('老年人口')}
-          className={`btn-base ${currentDisplayData === '老年人口' ? 'bg-gray-300' : ''}`}
-        >
-          老年人口
-        </button>
-      </div>
-      <div>{currentDisplayData}</div>
-      <div className="size-auto mt-8">
-        {currentData.length > 0 ? (
-          <LineChart
-            width={800}
-            height={500}
-            data={currentData}
-            margin={{ right: 30, left: 20, bottom: 5 }}
+    <div className="w-full h-full">
+      <h1 className="text-3xl font-bold text-center py-4 w-full bg-gray-300 ">
+        都道府県別人口推移グラフ
+      </h1>
+      <div className="items-center justify-items-center min-h-screen w-full px-4 font-[family-name:var(--font-geist-sans)] flex-grow">
+        <div className="checkbox-container">
+          {prefectures?.map((prefecture) => {
+            const prefCode = prefecture.prefCode;
+            const prefName = prefecture.prefName;
+            return (
+              <div key={prefCode} className="checkbox-base">
+                <label>
+                  <input
+                    type="checkbox"
+                    name={prefName}
+                    id={prefCode.toString()}
+                    checked={checkBoxStatus[prefCode]}
+                    onChange={() => {
+                      setCurrentChangeCodeStatus({
+                        prefCode,
+                        status: !checkBoxStatus[prefCode],
+                      });
+                      setCheckBoxStatus((prev) => ({
+                        ...prev,
+                        [prefCode]: !prev[prefCode],
+                      }));
+                    }}
+                  />
+                  {prefName}
+                </label>
+              </div>
+            );
+          })}
+        </div>
+        <div className="btn-wrapper">
+          <button
+            onClick={() => setCurrentDisplayData('総人口')}
+            className={`btn-base ${currentDisplayData === '総人口' ? 'bg-gray-300' : ''}`}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            {lineKeys.map((key, index) => (
-              <Line
-                key={key}
-                dataKey={key}
-                stroke={
-                  colors[
-                    prefectures!.findIndex((pref) => pref.prefName === key)
-                  ]
-                }
-                isAnimationActive={false}
-              />
-            ))}
-          </LineChart>
-        ) : (
-          <div className="flex items-center justify-center w-full h-full">
-            <p className="text-2xl text-center">
-              チェックボックスを選択してください
-            </p>
-          </div>
-        )}
+            総人口
+          </button>
+
+          <button
+            onClick={() => setCurrentDisplayData('年少人口')}
+            className={`btn-base ${currentDisplayData === '年少人口' ? 'bg-gray-300' : ''}`}
+          >
+            年少人口
+          </button>
+          <button
+            onClick={() => setCurrentDisplayData('生産年齢人口')}
+            className={`btn-base ${currentDisplayData === '生産年齢人口' ? 'bg-gray-300' : ''}`}
+          >
+            生産年齢人口
+          </button>
+
+          <button
+            onClick={() => setCurrentDisplayData('老年人口')}
+            className={`btn-base ${currentDisplayData === '老年人口' ? 'bg-gray-300' : ''}`}
+          >
+            老年人口
+          </button>
+        </div>
+        <div className="font-bold text-2xl my-8">{currentDisplayData}</div>
+        <div className="graph-container">
+          {currentData.length > 0 ? (
+            <div className="w-full max-w-4xl mx-auto px-2">
+              {/* Y軸ラベルとグラフ */}
+              <div className="flex items-start mb-2">
+                <div
+                  className="text-sm text-center leading-tight"
+                  style={{
+                    writingMode: 'vertical-rl',
+                    textOrientation: 'upright',
+                  }}
+                >
+                  人口数（万人）
+                </div>
+
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart
+                    data={currentData}
+                    margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                    <YAxis
+                      width={35}
+                      tick={{ fontSize: 10 }}
+                      tickFormatter={(value) => (value / 10000).toString()}
+                    />
+                    <Tooltip />
+                    {lineKeys.map((key, index) => (
+                      <Line
+                        key={key}
+                        dataKey={key}
+                        stroke={
+                          colors[
+                            prefectures!.findIndex(
+                              (pref) => pref.prefName === key,
+                            )
+                          ]
+                        }
+                        isAnimationActive={false}
+                        dot={true}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* X軸ラベル */}
+              <div className="text-sm text-right -mt-3">年</div>
+
+              {/* 凡例 */}
+              <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm">
+                {lineKeys.map((key) => (
+                  <div key={key} className="flex items-center gap-1">
+                    <span
+                      className="inline-block w-3 h-3 rounded-sm"
+                      style={{
+                        backgroundColor:
+                          colors[
+                            prefectures!.findIndex(
+                              (pref) => pref.prefName === key,
+                            )
+                          ],
+                      }}
+                    />
+                    <span>{key}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-full h-full">
+              <p className="text-2xl text-center">
+                チェックボックスを選択してください
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
