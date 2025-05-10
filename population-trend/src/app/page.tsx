@@ -139,28 +139,28 @@ export default function Home() {
       <div className="gap-2 flex flex-row items-center justify-center">
         <button
           onClick={() => setCurrentDisplayData('総人口')}
-          className="px-4 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className={`btn-base ${currentDisplayData === '総人口' ? 'bg-gray-300' : ''}`}
         >
           総人口
         </button>
 
         <button
           onClick={() => setCurrentDisplayData('年少人口')}
-          className="px-4 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className={`btn-base ${currentDisplayData === '年少人口' ? 'bg-gray-300' : ''}`}
         >
           年少人口
         </button>
 
         <button
           onClick={() => setCurrentDisplayData('生産年齢人口')}
-          className="px-4 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className={`btn-base ${currentDisplayData === '生産年齢人口' ? 'bg-gray-300' : ''}`}
         >
           生産年齢人口
         </button>
 
         <button
           onClick={() => setCurrentDisplayData('老年人口')}
-          className="px-4 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className={`btn-base ${currentDisplayData === '老年人口' ? 'bg-gray-300' : ''}`}
         >
           老年人口
         </button>
