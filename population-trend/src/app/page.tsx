@@ -1,20 +1,16 @@
 'use client';
 
-import { PopulationAPI, PopulationType, PrefectureAPI } from '@/api/api';
-import { getPopulation, getPrefectures } from '@/api/implement';
-import { format } from 'path';
-import { use, useEffect, useMemo, useState } from 'react';
+import { PopulationAPI, PopulationType, PrefectureAPI } from '@/../types/api';
+import { fetchPrefectures, fetchPopulation } from '@/lib/clientAPI';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
   LineChart,
   Line,
+  XAxis,
+  YAxis,
   CartesianGrid,
-  Legend,
+  Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
 import { colors } from '@/utils/colors';
 
@@ -40,8 +36,8 @@ export default function Home() {
   const [currentDisplayData, setCurrentDisplayData] =
     useState<PopulationType>('総人口');
 
-  const fetchPrefectures = async () => {
-    const res = await getPrefectures();
+  const fetchPref = async () => {
+    const res = await fetchPrefectures();
     if (res instanceof Error) {
       alert(res.message);
       return;
@@ -49,8 +45,8 @@ export default function Home() {
     setPrefectures(res.result);
   };
 
-  const fetchPopulation = async (prefCode: number) => {
-    const res = await getPopulation({ prefCode });
+  const fetchPop = async (prefCode: number) => {
+    const res = await fetchPopulation(prefCode);
     if (res instanceof Error) {
       alert(res.message);
       return;
@@ -60,7 +56,7 @@ export default function Home() {
 
   const changePopulationData = async (prefCode: number) => {
     if (checkBoxStatus[prefCode]) {
-      fetchPopulation(prefCode);
+      fetchPop(prefCode);
     } else {
       setPopulationData((prev) => {
         const { [prefCode]: _, ...rest } = prev || {};
@@ -70,7 +66,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchPrefectures();
+    fetchPref();
   }, []);
 
   useEffect(() => {
@@ -79,9 +75,7 @@ export default function Home() {
   }, [currentChangeCodeStatus]);
 
   const currentData = useMemo(() => {
-    if (populationData === undefined) return [];
-    if (prefectures === undefined) return [];
-
+    if (!populationData || !prefectures) return [];
     const formatted: { [year: number]: any } = {};
 
     for (const [prefCode, prefData] of Object.entries(populationData)) {
@@ -91,14 +85,12 @@ export default function Home() {
       for (const { year, value } of totalPopulationData) {
         if (!formatted[year]) formatted[year] = { name: year.toString() };
         formatted[year][
-          prefectures.find(
-            (prefecture) => prefecture.prefCode == Number(prefCode),
-          )?.prefName!
+          prefectures.find((p) => p.prefCode === Number(prefCode))?.prefName!
         ] = value;
       }
     }
 
-    return Object.values(formatted); // recharts用に配列に変換
+    return Object.values(formatted);
   }, [populationData, currentDisplayData]);
 
   const lineKeys = useMemo(() => {
@@ -108,72 +100,50 @@ export default function Home() {
 
   return (
     <div className="w-full h-full">
-      <h1 className="text-3xl font-bold text-center py-4 w-full bg-gray-300 ">
+      <h1 className="text-3xl font-bold text-center py-4 w-full bg-gray-300">
         都道府県別人口推移グラフ
       </h1>
       <div className="items-center justify-items-center min-h-screen w-full px-4 font-[family-name:var(--font-geist-sans)] flex-grow">
         <div className="checkbox-container">
-          {prefectures?.map((prefecture) => {
-            const prefCode = prefecture.prefCode;
-            const prefName = prefecture.prefName;
-            return (
-              <div key={prefCode} className="checkbox-base">
-                <label>
-                  <input
-                    type="checkbox"
-                    name={prefName}
-                    id={prefCode.toString()}
-                    checked={checkBoxStatus[prefCode]}
-                    onChange={() => {
-                      setCurrentChangeCodeStatus({
-                        prefCode,
-                        status: !checkBoxStatus[prefCode],
-                      });
-                      setCheckBoxStatus((prev) => ({
-                        ...prev,
-                        [prefCode]: !prev[prefCode],
-                      }));
-                    }}
-                  />
-                  {prefName}
-                </label>
-              </div>
-            );
-          })}
+          {prefectures?.map(({ prefCode, prefName }) => (
+            <div key={prefCode} className="checkbox-base">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={checkBoxStatus[prefCode]}
+                  onChange={() => {
+                    setCurrentChangeCodeStatus({
+                      prefCode,
+                      status: !checkBoxStatus[prefCode],
+                    });
+                    setCheckBoxStatus((prev) => ({
+                      ...prev,
+                      [prefCode]: !prev[prefCode],
+                    }));
+                  }}
+                />
+                {prefName}
+              </label>
+            </div>
+          ))}
         </div>
         <div className="btn-wrapper">
-          <button
-            onClick={() => setCurrentDisplayData('総人口')}
-            className={`btn-base ${currentDisplayData === '総人口' ? 'bg-gray-300' : ''}`}
-          >
-            総人口
-          </button>
-
-          <button
-            onClick={() => setCurrentDisplayData('年少人口')}
-            className={`btn-base ${currentDisplayData === '年少人口' ? 'bg-gray-300' : ''}`}
-          >
-            年少人口
-          </button>
-          <button
-            onClick={() => setCurrentDisplayData('生産年齢人口')}
-            className={`btn-base ${currentDisplayData === '生産年齢人口' ? 'bg-gray-300' : ''}`}
-          >
-            生産年齢人口
-          </button>
-
-          <button
-            onClick={() => setCurrentDisplayData('老年人口')}
-            className={`btn-base ${currentDisplayData === '老年人口' ? 'bg-gray-300' : ''}`}
-          >
-            老年人口
-          </button>
+          {['総人口', '年少人口', '生産年齢人口', '老年人口'].map((label) => (
+            <button
+              key={label}
+              onClick={() => setCurrentDisplayData(label as PopulationType)}
+              className={`btn-base ${
+                currentDisplayData === label ? 'bg-gray-300' : ''
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
         <div className="font-bold text-2xl my-8">{currentDisplayData}</div>
         <div className="graph-container">
           {currentData.length > 0 ? (
             <div className="w-full max-w-4xl mx-auto px-2">
-              {/* Y軸ラベルとグラフ */}
               <div className="flex items-start mb-2">
                 <div
                   className="text-sm text-center leading-tight"
@@ -198,7 +168,7 @@ export default function Home() {
                       tickFormatter={(value) => (value / 10000).toString()}
                     />
                     <Tooltip />
-                    {lineKeys.map((key, index) => (
+                    {lineKeys.map((key) => (
                       <Line
                         key={key}
                         dataKey={key}
@@ -216,11 +186,7 @@ export default function Home() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-
-              {/* X軸ラベル */}
               <div className="text-sm text-right -mt-3">年</div>
-
-              {/* 凡例 */}
               <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm">
                 {lineKeys.map((key) => (
                   <div key={key} className="flex items-center gap-1">
@@ -229,9 +195,7 @@ export default function Home() {
                       style={{
                         backgroundColor:
                           colors[
-                            prefectures!.findIndex(
-                              (pref) => pref.prefName === key,
-                            )
+                            prefectures!.findIndex((p) => p.prefName === key)
                           ],
                       }}
                     />

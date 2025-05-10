@@ -1,5 +1,5 @@
-import { PrefectureAPI } from '@/api/api';
-import { PopulationAPI } from '@/api/api';
+import { PrefectureAPI } from '../../types/api';
+import { PopulationAPI } from '../../types/api';
 
 export const getPrefectures = async (): Promise<PrefectureAPI['response']> => {
   try {
